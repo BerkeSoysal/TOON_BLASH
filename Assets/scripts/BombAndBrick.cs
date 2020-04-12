@@ -9,25 +9,23 @@ public class BombAndBrick : MonoBehaviour
     private int y = -1;
 
     private Dictionary<int, int> _dictionary;
+
+    private static readonly int Destroy1 = Animator.StringToHash("destroy");
+
     // Start is called before the first frame update
     void Start()
     {
         
     }
-    public void trigger(int x, int y, Dictionary<int,int> dictionary, bool fromBomb)
+    public void trigger(int x, int y, Dictionary<int,int> dictionary)
     {
         var anim = GetComponent<Animator>();
-        anim.SetTrigger("destroy");
+        anim.SetTrigger(Destroy1);
         this.x = x;
         this.y = y;
-        this._dictionary = dictionary;
+        _dictionary = dictionary;
     }
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
-    
+
     private void OnDestroy()
     {
         BlockSpawner blockSpawner = null;

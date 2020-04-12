@@ -161,7 +161,7 @@ public class BlockSpawner : MonoBehaviour
         }
     }
 
-    private void DeleteElements(List<Point> elementsToBeDeleted,bool createBomb,Dictionary<int,int> dictionary, bool fromBomb)
+    private void DeleteElements(List<Point> elementsToBeDeleted,bool createBomb, Dictionary<int,int> dictionary, bool fromBomb)
     {
         
         foreach (Point point in elementsToBeDeleted)
@@ -169,20 +169,20 @@ public class BlockSpawner : MonoBehaviour
             Vector3 pos = new Vector3(0, 0, 0);
             if (createBomb)
             {
+                createBomb = false;
+
                 pos = Grid[point.GetX(), point.GetY()].gameObject.transform.position;
                 Destroy(Grid[point.GetX(), point.GetY()].gameObject);
-                UnityEngine.Object newBlock = Instantiate(blocks[4], pos, Quaternion.identity);
-                GameObject bombobj = (GameObject) newBlock;
-                bombobj.name = "" + _blockCounter++;
-                Grid[point.GetX(), point.GetY()] = bombobj.transform;
-                createBomb = false;
+                var bombObject = Instantiate(blocks[4], pos, Quaternion.identity);
+                bombObject.name = _blockCounter++.ToString();
+                Grid[point.GetX(), point.GetY()] = bombObject.transform;
                 dictionary[point.GetX()] -= 1;
             }
             else
             {
-                string myBrick = Grid[point.GetX(), point.GetY()].gameObject.name;
-                BombAndBrick mmybrick = GameObject.Find(myBrick).GetComponent<BombAndBrick>();
-                mmybrick.trigger(point.GetX(), point.GetY(), dictionary, fromBomb);             
+                string brickId = Grid[point.GetX(), point.GetY()].gameObject.name;
+                var bombOrBrick = GameObject.Find(brickId).GetComponent<BombAndBrick>();
+                bombOrBrick.trigger(point.GetX(), point.GetY(), dictionary);             
             }
         }
         
