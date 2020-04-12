@@ -179,7 +179,7 @@ public class BlockSpawner : MonoBehaviour
             {
                 string myBrick = Grid[point.GetX(), point.GetY()].gameObject.name;
                 BombAndBrick mmybrick = GameObject.Find(myBrick).GetComponent<BombAndBrick>();
-                               
+                mmybrick.trigger(point.GetX(), point.GetY(), dictionary, fromBomb);             
             }
         }
         

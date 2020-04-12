@@ -14,7 +14,7 @@ public class BombAndBrick : MonoBehaviour
     {
         
     }
-    public void trigger(int x, int y, Dictionary<int,int> dictionary)
+    public void trigger(int x, int y, Dictionary<int,int> dictionary, bool fromBomb)
     {
         var anim = GetComponent<Animator>();
         anim.SetTrigger("destroy");
