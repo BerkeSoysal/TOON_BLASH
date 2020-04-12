@@ -13,6 +13,8 @@ public class BlockSpawner : MonoBehaviour
     private int _blockCounter = 0;
     private const int Undefined = -1;
     private const int CreateBomb = 5;
+
+    private const int CreateMissile = 4;
     
     public GameObject[] blocks;
     
@@ -93,10 +95,7 @@ public class BlockSpawner : MonoBehaviour
             _coroutine = FallElementsDown(dictionary);
             StartCoroutine(_coroutine);
         }
-
     }
-
-    
     
     private void Logic(Transform clickedObject)
     {
@@ -124,14 +123,18 @@ public class BlockSpawner : MonoBehaviour
             
             addScore(elementsToBeDeleted.Count);
             
-            DeleteElements(elementsToBeDeleted, shouldBombBeCreated(elementsToBeDeleted), dictionary, false);
-            
+            DeleteElements(elementsToBeDeleted, shouldMissileBeCreated(elementsToBeDeleted), dictionary, false);
         }
     }
 
     private bool shouldBombBeCreated(List<Point> ElementsToBeDeleted)
     {
         return ElementsToBeDeleted.Count > CreateBomb;
+    }
+
+    private bool shouldMissileBeCreated(List<Point> ElementsToBeDeleted)
+    {
+        return ElementsToBeDeleted.Count > CreateMissile;
     }
 
     private void bringNewBricks(Dictionary<int, int> dictionary)
@@ -170,10 +173,12 @@ public class BlockSpawner : MonoBehaviour
             if (createBomb)
             {
                 createBomb = false;
-
+              
+                
                 pos = Grid[point.GetX(), point.GetY()].gameObject.transform.position;
                 Destroy(Grid[point.GetX(), point.GetY()].gameObject);
-                var bombObject = Instantiate(blocks[4], pos, Quaternion.identity);
+                GameObject bombObject;
+                bombObject = elementsToBeDeleted.Count > CreateBomb ? Instantiate(blocks[4], pos, Quaternion.identity) : Instantiate(blocks[5], pos, Quaternion.identity);
                 bombObject.name = _blockCounter++.ToString();
                 Grid[point.GetX(), point.GetY()] = bombObject.transform;
                 dictionary[point.GetX()] -= 1;
@@ -331,6 +336,33 @@ public class BlockSpawner : MonoBehaviour
             bombIt( gameObjectTransform);
     }
 
+    public void getMissiledBrick(Transform gameObjectTransform)
+    {
+        if (!_crRunning && !gameOver)
+        {
+            //Destroy(gameObjectTransform.gameObject);    
+            missileIt( gameObjectTransform); 
+        }
+           
+    }
+
+    public void missileIt(Transform gameObjectTransform)
+    {
+        int x = Undefined, y = Undefined;
+        GetClickedGrid(ref x, ref y, gameObjectTransform);
+        List<Point> elementsToDelete = new List<Point>();
+        
+        var dictionary = new Dictionary<int, int>();
+
+        var ListBomb = new List<Point>();
+        
+        ListBomb.Add(new Point(x,y));
+
+        findMissiledElements(ListBomb, dictionary,elementsToDelete);
+        
+        DeleteElements(elementsToDelete,false, dictionary, true);
+        addScore(elementsToDelete.Count);
+    }
     public void bombIt(Transform gameObjectTransform)
     {
         int x = Undefined, y = Undefined;
@@ -351,8 +383,50 @@ public class BlockSpawner : MonoBehaviour
         
     }
 
+    private void findMissiledElements(List<Point> listBomb, Dictionary<int, int> dictionary, List<Point> elementsToDelete)
+    {
+        var y = listBomb[0].GetY();
+        for (int i = 0; i < Width; i++)
+        {
+            if (Grid[i, y].transform.gameObject.tag.Equals("bomb"))
+            {
+                String bombId = Grid[i, y].transform.gameObject.name;
+                Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
+                bomb.OnMouseDown();
+            }
+            addElement(i, y, elementsToDelete, dictionary);
+        }
+        // var deletedBombs = new List<Point>();
+        // while (listBomb.Count > 0)
+        // {
+        //     for(int i = listBomb[0].GetX()-1; i<= listBomb[0].GetX()+1; i++)
+        //     {
+        //         for (int j = listBomb[0].GetY() - 1; j <= listBomb[0].GetY() + 1; j++)
+        //         {
+        //             if(i < 0 || i >=Width || j<0 || j>=Height)
+        //                 continue;
+        //             addElement(i, j, elementsToDelete, dictionary);
+        //             Point point = new Point(i, j);
+        //             if (Grid[i,j].transform.gameObject.tag.Equals("bomb") && !listBomb.Contains(point) && !deletedBombs.Contains(point))
+        //             {
+        //                 listBomb.Add(point);
+        //             }
+        //         } 
+        //     }
+        //     if (listBomb.Count > 0)
+        //     {
+        //         var deletePoint = listBomb[0];
+        //         listBomb.RemoveAt(0);
+        //         deletedBombs.Add(deletePoint);
+        //     }
+            
+        // }
+    }
+
+    private List<Point> visitedBomb = new List<Point>();    
     private void findBombedElements(List<Point> listBomb,Dictionary<int,int> dictionary,List<Point> elementsToDelete)
     {
+        visitedBomb.Add(listBomb[0]);
         var deletedBombs = new List<Point>();
         while (listBomb.Count > 0)
         {
@@ -364,9 +438,13 @@ public class BlockSpawner : MonoBehaviour
                         continue;
                     addElement(i, j, elementsToDelete, dictionary);
                     Point point = new Point(i, j);
-                    if (Grid[i,j].transform.gameObject.tag.Equals("bomb") && !listBomb.Contains(point) && !deletedBombs.Contains(point))
+                    if (Grid[i,j].transform.gameObject.tag.Equals("bomb") && !listBomb.Contains(point) && !deletedBombs.Contains(point) && !visitedBomb.Contains(point))
                     {
-                        listBomb.Add(point);
+                        String bombId = Grid[i, j].transform.gameObject.name;
+                        Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
+                        bomb.OnMouseDown();
+                        
+                        //listBomb.Add(point);
                     }
                 } 
             }

@@ -2,9 +2,8 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI;
 
-public class Bomb : MonoBehaviour
+public class Missile : MonoBehaviour
 {
     public void OnMouseDown()
     {
@@ -12,6 +11,6 @@ public class Bomb : MonoBehaviour
         moves.reduceMovesByOne();
         
         BlockSpawner blockSpawner = GameObject.Find("spawner").GetComponent<BlockSpawner>();
-        blockSpawner.getBombedBrick(gameObject.transform);
+        blockSpawner.getMissiledBrick(gameObject.transform);
     }
 }
