@@ -5,12 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 
 public class Bomb : MonoBehaviour
-{ 
-    private void OnDestroy()
-    {
-        
-    }
-
+{
     private void OnMouseDown()
     {
         movesController moves = GameObject.Find("moves").GetComponent<movesController>();

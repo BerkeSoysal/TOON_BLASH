@@ -10,9 +10,8 @@ public class BlockSpawner : MonoBehaviour
 {
     private const int Width = 10;
     private const int Height = 20;
-    private int blockCounter = 0;
+    private int _blockCounter = 0;
     private const int Undefined = -1;
-    private bool bombCreated = false;
     private const int CreateBomb = 5;
     
     public GameObject[] blocks;
@@ -29,7 +28,7 @@ public class BlockSpawner : MonoBehaviour
 
     public GameObject gameOverText;
 
-    private bool CrRunning = false;
+    private bool _crRunning = false;
     
     void Start()
     {
@@ -37,16 +36,33 @@ public class BlockSpawner : MonoBehaviour
         _score = 0;
     }
 
+    private void FillContainer()
+    {
+        for (int i = 0; i < Width; i++)
+        {
+            for (int j = 0; j < Height; j++)
+            {
+                var BRICK_WIDTH = 0.5;
+                var BRICK_HEIGHT = 0.5;
+                
+                // it's actually 0.485 but we give a little gap.
+                
+                Vector3 position = transform.position + new Vector3((float)(i * BRICK_WIDTH), (float)(j * BRICK_HEIGHT), 0);
+                var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position, Quaternion.identity);
+                newBlock.name = _blockCounter++.ToString();
+                Grid[i, j] = newBlock.transform;
+            }
+        }
+    }
+    
     public bool checkGrid(Dictionary<int,int> dictionary)
     {
         int counter = 0;
-        bool isFull = true;
         for(int i=0;i< Width; i++)
             for (int j = 0; j < Height; j++)
             {
-                if (Grid[i, j] == null)
+                if (ReferenceEquals(Grid[i, j],null))
                 {
-                    isFull = false;
                     counter++;
                     if (dictionary.ContainsKey(i))
                     {
@@ -56,10 +72,10 @@ public class BlockSpawner : MonoBehaviour
                     {
                         dictionary.Add(i, 1);
                     }
-                    
                 }
             }
 
+        //Bomb creating also triggers so...
         return counter < 2;
     }
 
@@ -67,32 +83,20 @@ public class BlockSpawner : MonoBehaviour
     {
         var dictionary = new Dictionary<int, int>();
         bool gridFull = true;
-        if (!CrRunning)
+        if (!_crRunning)
         {
             gridFull = checkGrid(dictionary);
         }
-        if (!gridFull && !CrRunning )
+        if (!gridFull && !_crRunning )
         {
-            CrRunning = true;
+            _crRunning = true;
             _coroutine = FallElementsDown(dictionary);
             StartCoroutine(_coroutine);
         }
 
     }
 
-    private void FillContainer()
-    {
-        for (int i = 0; i < Width; i++)
-        {
-            for (int j = 0; j < Height; j++)
-            {
-                Vector3 position = transform.position + new Vector3((float)(i * 0.5), (float)(j * 0.5), 0);
-                var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position, Quaternion.identity);
-                newBlock.name = "" + blockCounter++;
-                Grid[i, j] = newBlock.transform;
-            }
-        }
-    }
+    
     
     private void Logic(Transform clickedObject)
     {
@@ -122,7 +126,6 @@ public class BlockSpawner : MonoBehaviour
             
             DeleteElements(elementsToBeDeleted, shouldBombBeCreated(elementsToBeDeleted), dictionary, false);
             
-            Debug.Log("he");
         }
     }
 
@@ -153,7 +156,7 @@ public class BlockSpawner : MonoBehaviour
         {
             UnityEngine.Object newBlock = Instantiate(blocks[Random.Range(0, 4)], new Vector3((float) (transform.position.x + mc[i]*0.5),(float)4.75,0), Quaternion.identity);
             GameObject gameObjectBlock = (GameObject)newBlock;
-            newBlock.name = "" + blockCounter++;
+            newBlock.name = "" + _blockCounter++;
             Grid[mc[i], 19] = gameObjectBlock.transform;
         }
     }
@@ -170,7 +173,7 @@ public class BlockSpawner : MonoBehaviour
                 Destroy(Grid[point.GetX(), point.GetY()].gameObject);
                 UnityEngine.Object newBlock = Instantiate(blocks[4], pos, Quaternion.identity);
                 GameObject bombobj = (GameObject) newBlock;
-                bombobj.name = "" + blockCounter++;
+                bombobj.name = "" + _blockCounter++;
                 Grid[point.GetX(), point.GetY()] = bombobj.transform;
                 createBomb = false;
                 dictionary[point.GetX()] -= 1;
@@ -272,12 +275,12 @@ public class BlockSpawner : MonoBehaviour
 
             bringNewBricks(dictionary);
         }
-        CrRunning = false;
+        _crRunning = false;
     }
 
     public void getClickedBrick(Transform transform)
     {
-        if (!CrRunning && !gameOver)
+        if (!_crRunning && !gameOver)
         {
             Logic(transform);
         }
@@ -323,7 +326,7 @@ public class BlockSpawner : MonoBehaviour
 
     public void getBombedBrick(Transform gameObjectTransform)
     {
-        if(!CrRunning && !gameOver)
+        if(!_crRunning && !gameOver)
             //Destroy(gameObjectTransform.gameObject);    
             bombIt( gameObjectTransform);
     }
