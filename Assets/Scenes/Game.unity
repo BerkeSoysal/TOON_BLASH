@@ -587,6 +587,8 @@ MonoBehaviour:
   - {fileID: 1623503001920913419, guid: 3553ffcae96e745649e71d433211b4c2, type: 3}
   - {fileID: 3461217961798485674, guid: 4705fb82d6bc54344bef35ee45947b86, type: 3}
   - {fileID: 5437826455789931436, guid: e9ac9de9e4320440c8ed79215954a1aa, type: 3}
+  - {fileID: 658842530918708759, guid: e0ec971797e8a457f91ea1b7395752de, type: 3}
+  - {fileID: 5510433609075543828, guid: c58f0203074f744a0b361b9b5dbbc4d9, type: 3}
   gameOver: 0
   gameOverText: {fileID: 7159757525864494154, guid: 542cbd7be84874eab98659a74c5462ac,
     type: 3}

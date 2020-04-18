@@ -10,28 +10,28 @@ public class BlockSpawner : MonoBehaviour
 {
     private const int Width = 10;
     private const int Height = 20;
-    private int _blockCounter = 0;
     private const int Undefined = -1;
-    private const int CreateBomb = 5;
-
+    private const int CreateBomb = 6;
     private const int CreateMissile = 4;
-    
+    private const int NumberOfColoredBricks = 4;
+
     public GameObject[] blocks;
-    
+
     private static readonly Transform[,] Grid = new Transform[Width, Height];
 
     private IEnumerator _coroutine;
 
     private int _score;
-
-    private const int NumberOfColoredBricks = 4;
+    private int _blockCounter = 0;
     
+    
+
     public bool gameOver = false;
 
     public GameObject gameOverText;
 
     private bool _crRunning = false;
-    
+
     void Start()
     {
         FillContainer();
@@ -46,57 +46,63 @@ public class BlockSpawner : MonoBehaviour
             {
                 var BRICK_WIDTH = 0.5;
                 var BRICK_HEIGHT = 0.5;
-                
+
                 // it's actually 0.485 but we give a little gap.
-                
-                Vector3 position = transform.position + new Vector3((float)(i * BRICK_WIDTH), (float)(j * BRICK_HEIGHT), 0);
-                var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position, Quaternion.identity);
+
+                Vector3 position = transform.position +
+                                   new Vector3((float) (i * BRICK_WIDTH), (float) (j * BRICK_HEIGHT), 0);
+                var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position,
+                    Quaternion.identity);
                 newBlock.name = _blockCounter++.ToString();
                 Grid[i, j] = newBlock.transform;
             }
         }
     }
     
-    public bool checkGrid(Dictionary<int,int> dictionary)
-    {
-        int counter = 0;
-        for(int i=0;i< Width; i++)
-            for (int j = 0; j < Height; j++)
-            {
-                if (ReferenceEquals(Grid[i, j],null))
-                {
-                    counter++;
-                    if (dictionary.ContainsKey(i))
-                    {
-                        dictionary[i] += 1;
-                    }
-                    else
-                    {
-                        dictionary.Add(i, 1);
-                    }
-                }
-            }
-
-        //Bomb creating also triggers so...
-        return counter < 2;
-    }
-
     private void Update()
     {
         var dictionary = new Dictionary<int, int>();
         bool gridFull = true;
         if (!_crRunning)
         {
-            gridFull = checkGrid(dictionary);
+            gridFull = CheckGrid(dictionary);
         }
-        if (!gridFull && !_crRunning )
+
+        if (!gridFull && !_crRunning)
         {
+            visitedBomb = new List<Point>();
             _crRunning = true;
             _coroutine = FallElementsDown(dictionary);
             StartCoroutine(_coroutine);
         }
     }
+
+    private bool CheckGrid(Dictionary<int, int> dictionary)
+    {
+        int counter = 0;
+        for (int i = 0; i < Width; i++)
+        for (int j = 0; j < Height; j++)
+        {
+            if (ReferenceEquals(Grid[i, j], null))
+            {
+                counter++;
+                if (dictionary.ContainsKey(i))
+                {
+                    dictionary[i] += 1;
+                }
+                else
+                {
+                    dictionary.Add(i, 1);
+                }
+            }
+        }
+
+        //Bomb creating also triggers so...
+        return counter < 2;
+    }
+
     
+
     private void Logic(Transform clickedObject)
     {
         int clickedBlockX = Undefined, clickedBlockY = Undefined;
@@ -113,16 +119,16 @@ public class BlockSpawner : MonoBehaviour
 
             Dictionary<int, int> dictionary = new Dictionary<int, int>();
             dictionary.Add(clickedBlockX, 1);
-            
+
             TraverseNew(elementsToBeTraversed, clickedColor, elementsToBeDeleted, dictionary);
 
-            if(elementsToBeDeleted.Count < 2) return;
-            
+            if (elementsToBeDeleted.Count < 2) return;
+
             movesController moves = GameObject.Find("moves").GetComponent<movesController>();
             moves.reduceMovesByOne();
-            
+
             addScore(elementsToBeDeleted.Count);
-            
+
             DeleteElements(elementsToBeDeleted, shouldMissileBeCreated(elementsToBeDeleted), dictionary, false);
         }
     }
@@ -149,36 +155,42 @@ public class BlockSpawner : MonoBehaviour
                 dictionary[item.Key] -= 1;
             }
         }
+
         createColumns(mylist);
-        
+
     }
+
     private void createColumns(List<int> mc)
     {
-        
-        for(int i = 0; i < mc.Count ; i++)
+
+        for (int i = 0; i < mc.Count; i++)
         {
-            UnityEngine.Object newBlock = Instantiate(blocks[Random.Range(0, 4)], new Vector3((float) (transform.position.x + mc[i]*0.5),(float)4.75,0), Quaternion.identity);
-            GameObject gameObjectBlock = (GameObject)newBlock;
+            UnityEngine.Object newBlock = Instantiate(blocks[Random.Range(0, 4)],
+                new Vector3((float) (transform.position.x + mc[i] * 0.5), (float) 4.75, 0), Quaternion.identity);
+            GameObject gameObjectBlock = (GameObject) newBlock;
             newBlock.name = "" + _blockCounter++;
             Grid[mc[i], 19] = gameObjectBlock.transform;
         }
     }
 
-    private void DeleteElements(List<Point> elementsToBeDeleted,bool createBomb, Dictionary<int,int> dictionary, bool fromBomb)
+    private void DeleteElements(List<Point> elementsToBeDeleted, bool createBomb, Dictionary<int, int> dictionary,
+        bool fromBomb)
     {
-        
+
         foreach (Point point in elementsToBeDeleted)
         {
             Vector3 pos = new Vector3(0, 0, 0);
             if (createBomb)
             {
                 createBomb = false;
-              
-                
+
+
                 pos = Grid[point.GetX(), point.GetY()].gameObject.transform.position;
                 Destroy(Grid[point.GetX(), point.GetY()].gameObject);
                 GameObject bombObject;
-                bombObject = elementsToBeDeleted.Count > CreateBomb ? Instantiate(blocks[4], pos, Quaternion.identity) : Instantiate(blocks[5], pos, Quaternion.identity);
+                bombObject = elementsToBeDeleted.Count > CreateBomb
+                    ? Instantiate(blocks[4], pos, Quaternion.identity)
+                    : Instantiate(blocks[Random.Range(5,7)], pos, Quaternion.identity);
                 bombObject.name = _blockCounter++.ToString();
                 Grid[point.GetX(), point.GetY()] = bombObject.transform;
                 dictionary[point.GetX()] -= 1;
@@ -187,18 +199,18 @@ public class BlockSpawner : MonoBehaviour
             {
                 string brickId = Grid[point.GetX(), point.GetY()].gameObject.name;
                 var bombOrBrick = GameObject.Find(brickId).GetComponent<BombAndBrick>();
-                bombOrBrick.trigger(point.GetX(), point.GetY(), dictionary);             
+                bombOrBrick.trigger(point.GetX(), point.GetY(), dictionary);
             }
         }
-        
+
     }
 
-    public void deleteFromGrid(int x, int y, Dictionary<int,int> dictionary)
+    public void deleteFromGrid(int x, int y, Dictionary<int, int> dictionary)
     {
-        if(x != -1)
+        if (x != -1)
             Grid[x, y] = null;
     }
-    
+
     private void GetClickedGrid(ref int x, ref int y, Transform clickedObject)
     {
         for (int i = 0; i < Width; i++)
@@ -209,6 +221,7 @@ public class BlockSpawner : MonoBehaviour
                 {
                     continue;
                 }
+
                 if (Grid[i, j].Equals(clickedObject))
                 {
                     x = i;
@@ -219,18 +232,18 @@ public class BlockSpawner : MonoBehaviour
         }
     }
 
-    
+
     private void addScore(int count)
     {
-        int addscore = (int)Math.Pow(count, 2);
+        int addscore = (int) Math.Pow(count, 2);
         _score += addscore;
         Text text = GameObject.Find("score").GetComponent<Text>();
         text.text = "" + _score;
     }
 
-    private IEnumerator FallElementsDown(Dictionary<int,int> dictionary)
-    { 
-        
+    private IEnumerator FallElementsDown(Dictionary<int, int> dictionary)
+    {
+
         bool stillFalling = true;
         bool allfilled = false;
         while (true)
@@ -253,7 +266,7 @@ public class BlockSpawner : MonoBehaviour
 
             while (stillFalling)
             {
-                yield return new WaitForSeconds(0.05f);
+                yield return new WaitForSeconds(0.01f);
                 stillFalling = false;
                 for (int x = 0; x < Width; x++)
                 {
@@ -280,6 +293,7 @@ public class BlockSpawner : MonoBehaviour
 
             bringNewBricks(dictionary);
         }
+
         _crRunning = false;
     }
 
@@ -290,8 +304,9 @@ public class BlockSpawner : MonoBehaviour
             Logic(transform);
         }
     }
-    
-    void TraverseNew(List<Point> elementsToBeTraversed, string color, List<Point> elementsToBeDeleted, Dictionary<int,int> dictionary)
+
+    void TraverseNew(List<Point> elementsToBeTraversed, string color, List<Point> elementsToBeDeleted,
+        Dictionary<int, int> dictionary)
     {
         while (elementsToBeTraversed.Count > 0)
         {
@@ -304,6 +319,7 @@ public class BlockSpawner : MonoBehaviour
 
             elementsToBeTraversed.Remove(elementsToBeTraversed[0]);
         }
+
         void CheckElement(int x, int y)
         {
             if (x > -1 && x < Width && y > -1 && y < Height)
@@ -321,6 +337,7 @@ public class BlockSpawner : MonoBehaviour
                         {
                             dictionary.Add(newCur.GetX(), 1);
                         }
+
                         elementsToBeDeleted.Add(newCur);
                         elementsToBeTraversed.Add(newCur);
                     }
@@ -331,9 +348,9 @@ public class BlockSpawner : MonoBehaviour
 
     public void getBombedBrick(Transform gameObjectTransform)
     {
-        if(!_crRunning && !gameOver)
+        if (!_crRunning && !gameOver)
             //Destroy(gameObjectTransform.gameObject);    
-            bombIt( gameObjectTransform);
+            bombIt(gameObjectTransform);
     }
 
     public void getMissiledBrick(Transform gameObjectTransform)
@@ -341,9 +358,19 @@ public class BlockSpawner : MonoBehaviour
         if (!_crRunning && !gameOver)
         {
             //Destroy(gameObjectTransform.gameObject);    
-            missileIt( gameObjectTransform); 
+            missileIt(gameObjectTransform);
         }
-           
+
+    }
+
+    public void getMissiledBrickUpside(Transform gameObjectTransform)
+    {
+        if (!_crRunning && !gameOver)
+        {
+            //Destroy(gameObjectTransform.gameObject);    
+            missileItUpside(gameObjectTransform);
+        }
+
     }
 
     public void missileIt(Transform gameObjectTransform)
@@ -351,49 +378,88 @@ public class BlockSpawner : MonoBehaviour
         int x = Undefined, y = Undefined;
         GetClickedGrid(ref x, ref y, gameObjectTransform);
         List<Point> elementsToDelete = new List<Point>();
-        
+
         var dictionary = new Dictionary<int, int>();
 
         var ListBomb = new List<Point>();
-        
-        ListBomb.Add(new Point(x,y));
 
-        findMissiledElements(ListBomb, dictionary,elementsToDelete);
-        
-        DeleteElements(elementsToDelete,false, dictionary, true);
+        ListBomb.Add(new Point(x, y));
+
+        findMissiledElements(ListBomb, dictionary, elementsToDelete);
+
+        DeleteElements(elementsToDelete, false, dictionary, true);
         addScore(elementsToDelete.Count);
     }
+
+    public void missileItUpside(Transform gameObjectTransform)
+    {
+        int x = Undefined, y = Undefined;
+        GetClickedGrid(ref x, ref y, gameObjectTransform);
+        List<Point> elementsToDelete = new List<Point>();
+
+        var dictionary = new Dictionary<int, int>();
+
+        var ListBomb = new List<Point>();
+
+        ListBomb.Add(new Point(x, y));
+
+        findMissiledElementsUpside(ListBomb, dictionary, elementsToDelete);
+
+        DeleteElements(elementsToDelete, false, dictionary, true);
+        addScore(elementsToDelete.Count);
+    }
+
     public void bombIt(Transform gameObjectTransform)
     {
         int x = Undefined, y = Undefined;
         GetClickedGrid(ref x, ref y, gameObjectTransform);
         List<Point> elementsToDelete = new List<Point>();
-        
+
         var dictionary = new Dictionary<int, int>();
 
         var ListBomb = new List<Point>();
-        
-        ListBomb.Add(new Point(x,y));
 
-        findBombedElements(ListBomb, dictionary,elementsToDelete);
-        
-        DeleteElements(elementsToDelete,false, dictionary, true);
+        ListBomb.Add(new Point(x, y));
+
+        findBombedElements(ListBomb, dictionary, elementsToDelete);
+
+        DeleteElements(elementsToDelete, false, dictionary, true);
         addScore(elementsToDelete.Count);
-        
-        
+
+
     }
 
-    private void findMissiledElements(List<Point> listBomb, Dictionary<int, int> dictionary, List<Point> elementsToDelete)
+    private void findMissiledElements(List<Point> listBomb, Dictionary<int, int> dictionary,
+        List<Point> elementsToDelete)
     {
         var y = listBomb[0].GetY();
+        visitedBomb.Add(new Point(listBomb[0].GetX(),listBomb[0].GetY()));
         for (int i = 0; i < Width; i++)
         {
-            if (Grid[i, y].transform.gameObject.tag.Equals("bomb"))
+            if (!visitedBomb.Contains(new Point(i, y)))
             {
-                String bombId = Grid[i, y].transform.gameObject.name;
-                Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
-                bomb.OnMouseDown();
+                if (Grid[i, y].transform.gameObject.tag.Equals("bomb"))
+                {
+                    String bombId = Grid[i, y].transform.gameObject.name;
+                    Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
+                    bomb.OnMouseDown();
+                }
+
+                if (Grid[i, y].transform.gameObject.tag.Equals("missile"))
+                {
+                    String bombId = Grid[i, y].transform.gameObject.name;
+                    Missile bomb = GameObject.Find(bombId).GetComponent<Missile>();
+                    bomb.OnMouseDown();
+                }
+
+                if (Grid[i, y].transform.gameObject.tag.Equals("upmissile"))
+                {
+                    String bombId = Grid[i, y].transform.gameObject.name;
+                    MissileUpside bomb = GameObject.Find(bombId).GetComponent<MissileUpside>();
+                    bomb.OnMouseDown();
+                }
             }
+
             addElement(i, y, elementsToDelete, dictionary);
         }
         // var deletedBombs = new List<Point>();
@@ -419,11 +485,42 @@ public class BlockSpawner : MonoBehaviour
         //         listBomb.RemoveAt(0);
         //         deletedBombs.Add(deletePoint);
         //     }
-            
+
         // }
     }
+    private void findMissiledElementsUpside(List<Point> listBomb, Dictionary<int, int> dictionary, List<Point> elementsToDelete)
+    {
+        visitedBomb.Add(new Point(listBomb[0].GetX(),listBomb[0].GetY()));
+        var x = listBomb[0].GetX();
+        for (int i = 0; i < Height; i++)
+        {
+            if(!visitedBomb.Contains(new Point(x,i)))
+            {
+                if ((Grid[x, i].transform.gameObject.tag.Equals("bomb")))
+                {
+                    String bombId = Grid[x, i].transform.gameObject.name;
+                    Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
+                    bomb.OnMouseDown();
+                }
+                else if (Grid[x, i].transform.gameObject.tag.Equals("missile"))
+                {
+                    String bombId = Grid[x, i].transform.gameObject.name;
+                    Missile bomb = GameObject.Find(bombId).GetComponent<Missile>();
+                    bomb.OnMouseDown();
+                }
+                else if (Grid[x, i].transform.gameObject.tag.Equals("upmissile"))
+                {
+                    String bombId = Grid[x, i].transform.gameObject.name;
+                    MissileUpside bomb = GameObject.Find(bombId).GetComponent<MissileUpside>();
+                    bomb.OnMouseDown();
+                }
+                
+            }
+            addElement(x, i, elementsToDelete, dictionary);
+        }
+    }
 
-    private List<Point> visitedBomb = new List<Point>();    
+private List<Point> visitedBomb = new List<Point>();    
     private void findBombedElements(List<Point> listBomb,Dictionary<int,int> dictionary,List<Point> elementsToDelete)
     {
         visitedBomb.Add(listBomb[0]);
@@ -438,13 +535,29 @@ public class BlockSpawner : MonoBehaviour
                         continue;
                     addElement(i, j, elementsToDelete, dictionary);
                     Point point = new Point(i, j);
-                    if (Grid[i,j].transform.gameObject.tag.Equals("bomb") && !listBomb.Contains(point) && !deletedBombs.Contains(point) && !visitedBomb.Contains(point))
+                    if (!visitedBomb.Contains(point))
                     {
-                        String bombId = Grid[i, j].transform.gameObject.name;
-                        Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
-                        bomb.OnMouseDown();
-                        
-                        //listBomb.Add(point);
+                        if (Grid[i, j].transform.gameObject.tag.Equals("bomb") && !listBomb.Contains(point) &&
+                            !deletedBombs.Contains(point))
+                        {
+                            String bombId = Grid[i, j].transform.gameObject.name;
+                            Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
+                            bomb.OnMouseDown();
+
+                            //listBomb.Add(point);
+                        }
+                        else if (Grid[i, j].transform.gameObject.tag.Equals("missile"))
+                        {
+                            String bombId = Grid[i, j].transform.gameObject.name;
+                            Missile bomb = GameObject.Find(bombId).GetComponent<Missile>();
+                            bomb.OnMouseDown();
+                        }
+                        else if (Grid[i, j].transform.gameObject.tag.Equals("upmissile"))
+                        {
+                            String bombId = Grid[i, j].transform.gameObject.name;
+                            MissileUpside bomb = GameObject.Find(bombId).GetComponent<MissileUpside>();
+                            bomb.OnMouseDown();
+                        }
                     }
                 } 
             }
