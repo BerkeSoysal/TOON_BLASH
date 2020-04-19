@@ -11,6 +11,6 @@ public class brick : MonoBehaviour
     private void OnMouseDown()
     {
         BlockSpawner blockSpawner = GameObject.Find("spawner").GetComponent<BlockSpawner>();
-        blockSpawner.getClickedBrick(gameObject.transform);
+        blockSpawner.GetClickedBrick(gameObject.transform);
     }
 }

@@ -7,7 +7,7 @@ public class Missile : MonoBehaviour
 {
     public void OnMouseDown()
     {
-        movesController moves = GameObject.Find("moves").GetComponent<movesController>();
+        MovesController moves = GameObject.Find("moves").GetComponent<MovesController>();
         moves.reduceMovesByOne();
         
         BlockSpawner blockSpawner = GameObject.Find("spawner").GetComponent<BlockSpawner>();

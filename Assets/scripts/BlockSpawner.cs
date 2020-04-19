@@ -31,11 +31,13 @@ public class BlockSpawner : MonoBehaviour
     public GameObject gameOverText;
 
     private bool _crRunning = false;
-
+    private MovesController _movesController;
     void Start()
     {
         FillContainer();
         _score = 0;
+        _movesController = GameObject.Find("moves").GetComponent<MovesController>();
+
     }
 
     private void FillContainer()
@@ -81,29 +83,90 @@ public class BlockSpawner : MonoBehaviour
     {
         int counter = 0;
         for (int i = 0; i < Width; i++)
-        for (int j = 0; j < Height; j++)
         {
-            if (ReferenceEquals(Grid[i, j], null))
+            for (int j = 0; j < Height; j++)
             {
-                counter++;
-                if (dictionary.ContainsKey(i))
+                if (ReferenceEquals(Grid[i, j], null))
                 {
-                    dictionary[i] += 1;
-                }
-                else
-                {
-                    dictionary.Add(i, 1);
+                    counter++;
+                    if (dictionary.ContainsKey(i))
+                    {
+                        dictionary[i] += 1;
+                    }
+                    else
+                    {
+                        dictionary.Add(i, 1);
+                    }
                 }
             }
         }
-
         //Bomb creating also triggers so...
         return counter < 2;
     }
+    
+    private IEnumerator FallElementsDown(Dictionary<int, int> dictionary)
+    {
+        while (true)
+        {
+            bool stillFalling = true;
+            bool allfilled = true;
+            for (int i = 0; i < dictionary.Count; i++)
+            {
+                if (dictionary.ElementAt(i).Value != 0)
+                {
+                    allfilled = false;
+                    break;
+                }
+            }
+
+            if (allfilled)
+            {
+                break;
+            }
+
+            while (stillFalling)
+            {
+                yield return new WaitForSeconds(0.01f);
+                stillFalling = false;
+                for (int x = 0; x < Width; x++)
+                {
+                    for (int y = 0; y < Height; y++)
+                    {
+                        if (ReferenceEquals(Grid[x, y], null))
+                        {
+                            for (int indexY = y + 1; indexY < Height; indexY++)
+                            {
+                                if (!ReferenceEquals(Grid[x, indexY], null))
+                                {
+                                    stillFalling = true;
+                                    Grid[x, indexY - 1] = Grid[x, indexY];
+                                    Vector2 vector = Grid[x, indexY - 1].transform.position;
+                                    vector.y -= 0.5f;
+                                    Grid[x, indexY - 1].transform.position = vector;
+                                    Grid[x, indexY] = null;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            bringNewBricks(dictionary);
+        }
+
+        _crRunning = false;
+    }
 
     
-
-    private void Logic(Transform clickedObject)
+    public void GetClickedBrick(Transform clickedTransform)
+    {
+        if (!_crRunning && !gameOver)
+        {
+            FindAndDeleteElements(clickedTransform);
+        }
+    }
+    
+    private void FindAndDeleteElements(Transform clickedObject)
     {
         int clickedBlockX = Undefined, clickedBlockY = Undefined;
 
@@ -117,19 +180,18 @@ public class BlockSpawner : MonoBehaviour
             elementsToBeTraversed.Add(new Point(clickedBlockX, clickedBlockY));
             elementsToBeDeleted.Add(new Point(clickedBlockX, clickedBlockY));
 
-            Dictionary<int, int> dictionary = new Dictionary<int, int>();
-            dictionary.Add(clickedBlockX, 1);
+            Dictionary<int, int> missingBricksAtColumns = new Dictionary<int, int>();
+            missingBricksAtColumns.Add(clickedBlockX, 1);
 
-            TraverseNew(elementsToBeTraversed, clickedColor, elementsToBeDeleted, dictionary);
+            TraverseNew(elementsToBeTraversed, clickedColor, elementsToBeDeleted, missingBricksAtColumns);
 
             if (elementsToBeDeleted.Count < 2) return;
 
-            movesController moves = GameObject.Find("moves").GetComponent<movesController>();
-            moves.reduceMovesByOne();
+            _movesController.reduceMovesByOne();
 
             addScore(elementsToBeDeleted.Count);
 
-            DeleteElements(elementsToBeDeleted, shouldMissileBeCreated(elementsToBeDeleted), dictionary, false);
+            DeleteElements(elementsToBeDeleted, shouldMissileBeCreated(elementsToBeDeleted), missingBricksAtColumns, false);
         }
     }
 
@@ -241,69 +303,8 @@ public class BlockSpawner : MonoBehaviour
         text.text = "" + _score;
     }
 
-    private IEnumerator FallElementsDown(Dictionary<int, int> dictionary)
-    {
-
-        bool stillFalling = true;
-        bool allfilled = false;
-        while (true)
-        {
-            stillFalling = true;
-            allfilled = true;
-            for (int i = 0; i < dictionary.Count; i++)
-            {
-                if (dictionary.ElementAt(i).Value != 0)
-                {
-                    allfilled = false;
-                    break;
-                }
-            }
-
-            if (allfilled)
-            {
-                break;
-            }
-
-            while (stillFalling)
-            {
-                yield return new WaitForSeconds(0.01f);
-                stillFalling = false;
-                for (int x = 0; x < Width; x++)
-                {
-                    for (int y = 0; y < Height; y++)
-                    {
-                        if (ReferenceEquals(Grid[x, y], null))
-                        {
-                            for (int indexY = y + 1; indexY < Height; indexY++)
-                            {
-                                if (!ReferenceEquals(Grid[x, indexY], null))
-                                {
-                                    stillFalling = true;
-                                    Grid[x, indexY - 1] = Grid[x, indexY];
-                                    Vector2 vector = Grid[x, indexY - 1].transform.position;
-                                    vector.y -= 0.5f;
-                                    Grid[x, indexY - 1].transform.position = vector;
-                                    Grid[x, indexY] = null;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            bringNewBricks(dictionary);
-        }
-
-        _crRunning = false;
-    }
-
-    public void getClickedBrick(Transform transform)
-    {
-        if (!_crRunning && !gameOver)
-        {
-            Logic(transform);
-        }
-    }
+    
+    
 
     void TraverseNew(List<Point> elementsToBeTraversed, string color, List<Point> elementsToBeDeleted,
         Dictionary<int, int> dictionary)
