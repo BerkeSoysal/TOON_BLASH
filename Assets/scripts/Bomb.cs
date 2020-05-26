@@ -8,9 +8,6 @@ public class Bomb : MonoBehaviour
 {
     public void OnMouseDown()
     {
-        MovesController moves = GameObject.Find("moves").GetComponent<MovesController>();
-        moves.reduceMovesByOne();
-        
         BlockSpawner blockSpawner = GameObject.Find("spawner").GetComponent<BlockSpawner>();
         blockSpawner.getBombedBrick(gameObject.transform);
     }

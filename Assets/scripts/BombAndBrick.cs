@@ -30,7 +30,7 @@ public class BombAndBrick : MonoBehaviour
         }
         if (null != blockSpawner)
         {
-            blockSpawner.deleteFromGrid(x,y, _dictionary);
+            blockSpawner.DeleteFromGrid(x,y, _dictionary);
         }
     }
 }

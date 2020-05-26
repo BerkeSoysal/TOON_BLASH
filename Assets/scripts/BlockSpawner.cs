@@ -10,10 +10,13 @@ public class BlockSpawner : MonoBehaviour
 {
     private const int Width = 10;
     private const int Height = 20;
+    private const float BrickHeight = 0.5f;
+    private const float BrickWidth = 0.5f;
     private const int Undefined = -1;
     private const int CreateBomb = 6;
     private const int CreateMissile = 4;
     private const int NumberOfColoredBricks = 4;
+    private int move = 0;
 
     public GameObject[] blocks;
 
@@ -23,21 +26,25 @@ public class BlockSpawner : MonoBehaviour
 
     private int _score;
     private int _blockCounter = 0;
-    
-    
+
+    private List<string> colorNames;
 
     public bool gameOver = false;
 
     public GameObject gameOverText;
 
     private bool _crRunning = false;
-    private MovesController _movesController;
     void Start()
     {
+        colorNames = new List<string>
+        {
+            "blue",
+            "red",
+            "green",
+            "yellow"
+        };
         FillContainer();
         _score = 0;
-        _movesController = GameObject.Find("moves").GetComponent<MovesController>();
-
     }
 
     private void FillContainer()
@@ -46,13 +53,8 @@ public class BlockSpawner : MonoBehaviour
         {
             for (int j = 0; j < Height; j++)
             {
-                var BRICK_WIDTH = 0.5;
-                var BRICK_HEIGHT = 0.5;
-
-                // it's actually 0.485 but we give a little gap.
-
-                Vector3 position = transform.position +
-                                   new Vector3((float) (i * BRICK_WIDTH), (float) (j * BRICK_HEIGHT), 0);
+                var position = transform.position +
+                               new Vector3((float) (i * BrickWidth), (float) (j * BrickHeight), 0);
                 var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position,
                     Quaternion.identity);
                 newBlock.name = _blockCounter++.ToString();
@@ -141,7 +143,7 @@ public class BlockSpawner : MonoBehaviour
                                     stillFalling = true;
                                     Grid[x, indexY - 1] = Grid[x, indexY];
                                     Vector2 vector = Grid[x, indexY - 1].transform.position;
-                                    vector.y -= 0.5f;
+                                    vector.y -= BrickHeight;
                                     Grid[x, indexY - 1].transform.position = vector;
                                     Grid[x, indexY] = null;
                                 }
@@ -151,7 +153,7 @@ public class BlockSpawner : MonoBehaviour
                 }
             }
 
-            bringNewBricks(dictionary);
+            BringNewBricks(dictionary);
         }
 
         _crRunning = false;
@@ -165,7 +167,26 @@ public class BlockSpawner : MonoBehaviour
             FindAndDeleteElements(clickedTransform);
         }
     }
-    
+
+    private void makeRandomBricksCorrupted()
+    {
+        int corruptedSelected = 0;
+        while(corruptedSelected < 5)
+        {
+            int randomHeight = Random.Range(0, Height);
+            int randomWidth = Random.Range(0, Width);
+            if (colorNames.Contains(Grid[randomWidth, randomHeight].gameObject.tag))
+            {
+                corruptedSelected++;
+                var vector = Grid[randomWidth, randomHeight].position;
+                Destroy(Grid[randomWidth, randomHeight].gameObject);
+                var corruptedObject = Instantiate(blocks[7], vector, Quaternion.identity);
+                Grid[randomWidth, randomHeight] = corruptedObject.transform;
+            }
+        }
+        
+    }
+
     private void FindAndDeleteElements(Transform clickedObject)
     {
         int clickedBlockX = Undefined, clickedBlockY = Undefined;
@@ -187,11 +208,17 @@ public class BlockSpawner : MonoBehaviour
 
             if (elementsToBeDeleted.Count < 2) return;
 
-            _movesController.reduceMovesByOne();
+            //move done
+            move++;
 
-            addScore(elementsToBeDeleted.Count);
+           
 
-            DeleteElements(elementsToBeDeleted, shouldMissileBeCreated(elementsToBeDeleted), missingBricksAtColumns, false);
+            AddScore(elementsToBeDeleted.Count);
+
+            DeleteElements(elementsToBeDeleted, ShouldMissileBeCreated(elementsToBeDeleted), missingBricksAtColumns, false);
+
+            if (move % 5 == 0)
+                makeRandomBricksCorrupted();
         }
     }
 
@@ -200,12 +227,12 @@ public class BlockSpawner : MonoBehaviour
         return ElementsToBeDeleted.Count > CreateBomb;
     }
 
-    private bool shouldMissileBeCreated(List<Point> ElementsToBeDeleted)
+    private bool ShouldMissileBeCreated(List<Point> ElementsToBeDeleted)
     {
         return ElementsToBeDeleted.Count > CreateMissile;
     }
 
-    private void bringNewBricks(Dictionary<int, int> dictionary)
+    private void BringNewBricks(Dictionary<int, int> dictionary)
     {
         List<int> mylist = new List<int>();
         for (int i = 0; i < dictionary.Count; i++)
@@ -218,20 +245,20 @@ public class BlockSpawner : MonoBehaviour
             }
         }
 
-        createColumns(mylist);
+        CreateColumns(mylist);
 
     }
 
-    private void createColumns(List<int> mc)
+    private void CreateColumns(List<int> mc)
     {
 
         for (int i = 0; i < mc.Count; i++)
         {
             UnityEngine.Object newBlock = Instantiate(blocks[Random.Range(0, 4)],
-                new Vector3((float) (transform.position.x + mc[i] * 0.5), (float) 4.75, 0), Quaternion.identity);
+                new Vector3((float) (transform.position.x + mc[i] * BrickWidth), (float) (transform.position.y + (Height-1)*BrickHeight), 0), Quaternion.identity);
             GameObject gameObjectBlock = (GameObject) newBlock;
             newBlock.name = "" + _blockCounter++;
-            Grid[mc[i], 19] = gameObjectBlock.transform;
+            Grid[mc[i], Height-1] = gameObjectBlock.transform;
         }
     }
 
@@ -267,7 +294,7 @@ public class BlockSpawner : MonoBehaviour
 
     }
 
-    public void deleteFromGrid(int x, int y, Dictionary<int, int> dictionary)
+    public void DeleteFromGrid(int x, int y, Dictionary<int, int> dictionary)
     {
         if (x != -1)
             Grid[x, y] = null;
@@ -295,17 +322,14 @@ public class BlockSpawner : MonoBehaviour
     }
 
 
-    private void addScore(int count)
+    private void AddScore(int count)
     {
         int addscore = (int) Math.Pow(count, 2);
         _score += addscore;
         Text text = GameObject.Find("score").GetComponent<Text>();
         text.text = "" + _score;
     }
-
     
-    
-
     void TraverseNew(List<Point> elementsToBeTraversed, string color, List<Point> elementsToBeDeleted,
         Dictionary<int, int> dictionary)
     {
@@ -389,7 +413,7 @@ public class BlockSpawner : MonoBehaviour
         findMissiledElements(ListBomb, dictionary, elementsToDelete);
 
         DeleteElements(elementsToDelete, false, dictionary, true);
-        addScore(elementsToDelete.Count);
+        AddScore(elementsToDelete.Count);
     }
 
     public void missileItUpside(Transform gameObjectTransform)
@@ -407,7 +431,7 @@ public class BlockSpawner : MonoBehaviour
         findMissiledElementsUpside(ListBomb, dictionary, elementsToDelete);
 
         DeleteElements(elementsToDelete, false, dictionary, true);
-        addScore(elementsToDelete.Count);
+        AddScore(elementsToDelete.Count);
     }
 
     public void bombIt(Transform gameObjectTransform)
@@ -425,7 +449,7 @@ public class BlockSpawner : MonoBehaviour
         findBombedElements(ListBomb, dictionary, elementsToDelete);
 
         DeleteElements(elementsToDelete, false, dictionary, true);
-        addScore(elementsToDelete.Count);
+        AddScore(elementsToDelete.Count);
 
 
     }
