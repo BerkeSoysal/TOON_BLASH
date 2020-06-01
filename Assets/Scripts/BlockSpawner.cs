@@ -542,45 +542,21 @@ public class BlockSpawner : MonoBehaviour
                 if (Grid[i, y].transform.gameObject.tag.Equals("missile"))
                 {
                     String bombId = Grid[i, y].transform.gameObject.name;
-                    Missile bomb = GameObject.Find(bombId).GetComponent<Missile>();
+                    MissileHorizontal bomb = GameObject.Find(bombId).GetComponent<MissileHorizontal>();
                     bomb.OnMouseDown();
                 }
 
                 if (Grid[i, y].transform.gameObject.tag.Equals("upmissile"))
                 {
                     String bombId = Grid[i, y].transform.gameObject.name;
-                    MissileUpside bomb = GameObject.Find(bombId).GetComponent<MissileUpside>();
+                    MissileVertical bomb = GameObject.Find(bombId).GetComponent<MissileVertical>();
                     bomb.OnMouseDown();
                 }
             }
 
             addElement(i, y, elementsToDelete, dictionary);
         }
-        // var deletedBombs = new List<Point>();
-        // while (listBomb.Count > 0)
-        // {
-        //     for(int i = listBomb[0].GetX()-1; i<= listBomb[0].GetX()+1; i++)
-        //     {
-        //         for (int j = listBomb[0].GetY() - 1; j <= listBomb[0].GetY() + 1; j++)
-        //         {
-        //             if(i < 0 || i >=Width || j<0 || j>=Height)
-        //                 continue;
-        //             addElement(i, j, elementsToDelete, dictionary);
-        //             Point point = new Point(i, j);
-        //             if (Grid[i,j].transform.gameObject.tag.Equals("bomb") && !listBomb.Contains(point) && !deletedBombs.Contains(point))
-        //             {
-        //                 listBomb.Add(point);
-        //             }
-        //         } 
-        //     }
-        //     if (listBomb.Count > 0)
-        //     {
-        //         var deletePoint = listBomb[0];
-        //         listBomb.RemoveAt(0);
-        //         deletedBombs.Add(deletePoint);
-        //     }
-
-        // }
+      
     }
     private void findMissiledElementsUpside(List<Point> listBomb, Dictionary<int, int> dictionary, List<Point> elementsToDelete)
     {
@@ -599,13 +575,13 @@ public class BlockSpawner : MonoBehaviour
                 else if (Grid[x, i].transform.gameObject.tag.Equals("missile"))
                 {
                     String bombId = Grid[x, i].transform.gameObject.name;
-                    Missile bomb = GameObject.Find(bombId).GetComponent<Missile>();
+                    MissileHorizontal bomb = GameObject.Find(bombId).GetComponent<MissileHorizontal>();
                     bomb.OnMouseDown();
                 }
                 else if (Grid[x, i].transform.gameObject.tag.Equals("upmissile"))
                 {
                     String bombId = Grid[x, i].transform.gameObject.name;
-                    MissileUpside bomb = GameObject.Find(bombId).GetComponent<MissileUpside>();
+                    MissileVertical bomb = GameObject.Find(bombId).GetComponent<MissileVertical>();
                     bomb.OnMouseDown();
                 }
                 
@@ -637,19 +613,17 @@ private List<Point> visitedBomb = new List<Point>();
                             String bombId = Grid[i, j].transform.gameObject.name;
                             Bomb bomb = GameObject.Find(bombId).GetComponent<Bomb>();
                             bomb.OnMouseDown();
-
-                            //listBomb.Add(point);
                         }
                         else if (Grid[i, j].transform.gameObject.tag.Equals("missile"))
                         {
                             String bombId = Grid[i, j].transform.gameObject.name;
-                            Missile bomb = GameObject.Find(bombId).GetComponent<Missile>();
+                            MissileHorizontal bomb = GameObject.Find(bombId).GetComponent<MissileHorizontal>();
                             bomb.OnMouseDown();
                         }
                         else if (Grid[i, j].transform.gameObject.tag.Equals("upmissile"))
                         {
                             String bombId = Grid[i, j].transform.gameObject.name;
-                            MissileUpside bomb = GameObject.Find(bombId).GetComponent<MissileUpside>();
+                            MissileVertical bomb = GameObject.Find(bombId).GetComponent<MissileVertical>();
                             bomb.OnMouseDown();
                         }
                     }

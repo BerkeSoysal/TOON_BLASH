@@ -1,7 +1,7 @@
 ﻿
 using UnityEngine;
 
-public class MissileUpside : MonoBehaviour
+public class MissileVertical : MonoBehaviour
 {
     public void OnMouseDown()
     {
