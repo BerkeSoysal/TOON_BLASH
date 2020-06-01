@@ -11,9 +11,10 @@ public class BombAndBrick : MonoBehaviour
     private Dictionary<int, int> _dictionary;
 
     private static readonly int Destroy1 = Animator.StringToHash("destroy");
-    
-    public void trigger(int x, int y, Dictionary<int,int> dictionary)
+
+    public void Trigger(int x, int y, Dictionary<int, int> dictionary)
     {
+        
         var anim = GetComponent<Animator>();
         anim.SetTrigger(Destroy1);
         this.x = x;
@@ -22,6 +23,7 @@ public class BombAndBrick : MonoBehaviour
     }
     private void OnDestroy()
     {
+        
         BlockSpawner blockSpawner = null;
         var spawnerGameObject = GameObject.Find("spawner");
         if (null != spawnerGameObject)
@@ -30,7 +32,7 @@ public class BombAndBrick : MonoBehaviour
         }
         if (null != blockSpawner)
         {
-            blockSpawner.DeleteFromGrid(x,y, _dictionary);
+            blockSpawner.DeleteFromGrid(x,y);
         }
     }
 }

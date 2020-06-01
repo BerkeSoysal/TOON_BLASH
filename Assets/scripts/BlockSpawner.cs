@@ -16,6 +16,8 @@ public class BlockSpawner : MonoBehaviour
     private const int CreateBomb = 6;
     private const int CreateMissile = 4;
     private const int NumberOfColoredBricks = 4;
+    private const int corruptBrickCreate = 4;
+    private int corruptBrickNum = 6;
     private int move = 0;
 
     public GameObject[] blocks;
@@ -62,7 +64,8 @@ public class BlockSpawner : MonoBehaviour
             }
         }
     }
-    
+    private Boolean elementsarecreated = false;
+    private Boolean changeHappen = false;
     private void Update()
     {
         var dictionary = new Dictionary<int, int>();
@@ -74,11 +77,32 @@ public class BlockSpawner : MonoBehaviour
 
         if (!gridFull && !_crRunning)
         {
+            elementsarecreated = false;
             visitedBomb = new List<Point>();
             _crRunning = true;
             _coroutine = FallElementsDown(dictionary);
             StartCoroutine(_coroutine);
+            move++;
+            changeHappen = true;
         }
+        if(move% corruptBrickCreate == 0 && elementsarecreated)
+        {
+            elementsarecreated = false;
+            makeRandomBricksCorrupted();
+            
+        }
+
+        if(!_crRunning && changeHappen)
+        {
+            gameOver = !CheckAvailableMove();
+            changeHappen = false;
+            // TODO Show game over 
+        }
+        if(gameOver)
+        {
+            endGame();
+        }
+
     }
 
     private bool CheckGrid(Dictionary<int, int> dictionary)
@@ -123,6 +147,7 @@ public class BlockSpawner : MonoBehaviour
 
             if (allfilled)
             {
+                elementsarecreated = true;
                 break;
             }
 
@@ -155,6 +180,8 @@ public class BlockSpawner : MonoBehaviour
 
             BringNewBricks(dictionary);
         }
+  
+       
 
         _crRunning = false;
     }
@@ -168,24 +195,73 @@ public class BlockSpawner : MonoBehaviour
         }
     }
 
+    private bool noColorFulLeft()
+    {
+        for(int i =0; i< Width; i++)
+            for(int j = 0; j<Height;j++)
+            {
+                if (colorNames.Contains(Grid[i, j].transform.gameObject.tag))
+                    return false;
+            }
+        return true;
+    }
+
     private void makeRandomBricksCorrupted()
     {
         int corruptedSelected = 0;
-        while(corruptedSelected < 5)
+        while(corruptedSelected < corruptBrickNum)
         {
+            if(noColorFulLeft())
+            {
+                gameOver = true;
+                break;
+            }
+
             int randomHeight = Random.Range(0, Height);
             int randomWidth = Random.Range(0, Width);
+                
+           
             if (colorNames.Contains(Grid[randomWidth, randomHeight].gameObject.tag))
             {
                 corruptedSelected++;
                 var vector = Grid[randomWidth, randomHeight].position;
                 Destroy(Grid[randomWidth, randomHeight].gameObject);
                 var corruptedObject = Instantiate(blocks[7], vector, Quaternion.identity);
+                corruptedObject.name = "corrupted" + _blockCounter;
+                _blockCounter++;
                 Grid[randomWidth, randomHeight] = corruptedObject.transform;
+
             }
         }
-        
+        if(corruptBrickNum < 20)
+            corruptBrickNum++;
     }
+
+    private Boolean CheckAvailableMove()
+    {
+        for (int i = 0; i < Width; i++)
+            for(int j=0; j < Height; j++)
+            {
+                string clickedColor = Grid[i, j].tag;
+                if(clickedColor.Equals("bomb") || clickedColor.Equals("missile") || clickedColor.Equals("upmissile"))
+                { return true; }
+                if (clickedColor.Equals("corrupted"))
+                    continue;
+                List<Point> elementsToBeTraversed = new List<Point>();
+                List<Point> elementsToBeDeleted = new List<Point>();
+                elementsToBeTraversed.Add(new Point(i, j));
+                elementsToBeDeleted.Add(new Point(i, j));
+
+                Dictionary<int, int> missingBricksAtColumns = new Dictionary<int, int>();
+                missingBricksAtColumns.Add(i, 1);
+
+                TraverseNew(elementsToBeTraversed, clickedColor, elementsToBeDeleted, missingBricksAtColumns);
+
+                if (elementsToBeDeleted.Count > 1) return true;
+            }
+        return false;
+    }
+
 
     private void FindAndDeleteElements(Transform clickedObject)
     {
@@ -208,17 +284,13 @@ public class BlockSpawner : MonoBehaviour
 
             if (elementsToBeDeleted.Count < 2) return;
 
-            //move done
-            move++;
 
-           
 
             AddScore(elementsToBeDeleted.Count);
 
             DeleteElements(elementsToBeDeleted, ShouldMissileBeCreated(elementsToBeDeleted), missingBricksAtColumns, false);
 
-            if (move % 5 == 0)
-                makeRandomBricksCorrupted();
+            
         }
     }
 
@@ -288,13 +360,13 @@ public class BlockSpawner : MonoBehaviour
             {
                 string brickId = Grid[point.GetX(), point.GetY()].gameObject.name;
                 var bombOrBrick = GameObject.Find(brickId).GetComponent<BombAndBrick>();
-                bombOrBrick.trigger(point.GetX(), point.GetY(), dictionary);
+                bombOrBrick.Trigger(point.GetX(), point.GetY(), dictionary);
             }
         }
 
     }
 
-    public void DeleteFromGrid(int x, int y, Dictionary<int, int> dictionary)
+    public void DeleteFromGrid(int x, int y)
     {
         if (x != -1)
             Grid[x, y] = null;
@@ -374,7 +446,6 @@ public class BlockSpawner : MonoBehaviour
     public void getBombedBrick(Transform gameObjectTransform)
     {
         if (!_crRunning && !gameOver)
-            //Destroy(gameObjectTransform.gameObject);    
             bombIt(gameObjectTransform);
     }
 
@@ -382,7 +453,6 @@ public class BlockSpawner : MonoBehaviour
     {
         if (!_crRunning && !gameOver)
         {
-            //Destroy(gameObjectTransform.gameObject);    
             missileIt(gameObjectTransform);
         }
 
@@ -392,7 +462,6 @@ public class BlockSpawner : MonoBehaviour
     {
         if (!_crRunning && !gameOver)
         {
-            //Destroy(gameObjectTransform.gameObject);    
             missileItUpside(gameObjectTransform);
         }
 
@@ -451,7 +520,7 @@ public class BlockSpawner : MonoBehaviour
         DeleteElements(elementsToDelete, false, dictionary, true);
         AddScore(elementsToDelete.Count);
 
-
+        
     }
 
     private void findMissiledElements(List<Point> listBomb, Dictionary<int, int> dictionary,
@@ -616,9 +685,8 @@ private List<Point> visitedBomb = new List<Point>();
         }
     }
 
-    public void SetGameOver(bool gameOver)
+    public void endGame()
     {
-        this.gameOver = true;
         GameObject myObj = Instantiate(gameOverText,new Vector3(0,0,0) ,Quaternion.identity) as GameObject;
         myObj.transform.SetParent(GameObject.FindWithTag("canvas").transform, false);
     }
