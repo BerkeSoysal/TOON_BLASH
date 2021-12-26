@@ -4,7 +4,7 @@ public class Bomb : MonoBehaviour
 {
     public void OnMouseDown()
     {
-        BlockSpawner blockSpawner = GameObject.Find("spawner").GetComponent<BlockSpawner>();
-        blockSpawner.GetBombedBrick(gameObject.transform);
+        MainLogic mainLogic = GameObject.Find("spawner").GetComponent<MainLogic>();
+        mainLogic.GetBombedBrick(gameObject.transform);
     }
 }

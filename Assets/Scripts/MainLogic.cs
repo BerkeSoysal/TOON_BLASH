@@ -6,10 +6,10 @@ using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random;
 
-public class BlockSpawner : MonoBehaviour
+public class MainLogic : MonoBehaviour
 {
-    private const int Width = 10;
-    private const int Height = 20;
+    private const int Width = 10; //total number of bricks column-wise
+    private const int Height = 20; //total number of bricks row-wise
     private const float BrickHeight = 0.5f;
     private const float BrickWidth = 0.5f;
     private const int Undefined = -1;
@@ -24,7 +24,7 @@ public class BlockSpawner : MonoBehaviour
 
     private static readonly Transform[,] Grid = new Transform[Width, Height];
 
-    private IEnumerator _coroutine;
+    private IEnumerator _fallElementsDownCoroutine;
 
     private int _score;
     private int _blockCounter;
@@ -49,14 +49,16 @@ public class BlockSpawner : MonoBehaviour
         _score = 0;
     }
 
+    /**
+     * Fills container with random generated bricks.
+     */
     private void FillContainer()
     {
-        for (int i = 0; i < Width; i++)
+        for (var i = 0; i < Width; i++)
         {
-            for (int j = 0; j < Height; j++)
+            for (var j = 0; j < Height; j++)
             {
-                var position = transform.position +
-                               new Vector3(i * BrickWidth, j * BrickHeight, 0);
+                var position = transform.position + new Vector3(i * BrickWidth, j * BrickHeight, 0);
                 var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position,
                     Quaternion.identity);
                 newBlock.name = _blockCounter++.ToString();
@@ -64,12 +66,12 @@ public class BlockSpawner : MonoBehaviour
             }
         }
     }
-    private Boolean _elementsAreCreated;
-    private Boolean _changeHappen;
+    private bool _elementsAreCreated;
+    private bool _changeHappen;
     private void Update()
     {
         var dictionary = new Dictionary<int, int>();
-        bool gridFull = true;
+        var gridFull = true;
         if (!_crRunning)
         {
             gridFull = CheckGrid(dictionary);
@@ -80,8 +82,8 @@ public class BlockSpawner : MonoBehaviour
             _elementsAreCreated = false;
             _visitedBomb = new List<Point>();
             _crRunning = true;
-            _coroutine = FallElementsDown(dictionary);
-            StartCoroutine(_coroutine);
+            _fallElementsDownCoroutine = FallElementsDown(dictionary);
+            StartCoroutine(_fallElementsDownCoroutine);
             _move++;
             _changeHappen = true;
         }
@@ -135,17 +137,17 @@ public class BlockSpawner : MonoBehaviour
         while (true)
         {
             bool stillFalling = true;
-            bool allfilled = true;
+            bool allFilled = true;
             for (int i = 0; i < dictionary.Count; i++)
             {
                 if (dictionary.ElementAt(i).Value != 0)
                 {
-                    allfilled = false;
+                    allFilled = false;
                     break;
                 }
             }
 
-            if (allfilled)
+            if (allFilled)
             {
                 _elementsAreCreated = true;
                 break;

@@ -20,15 +20,15 @@ public class BombAndBrick : MonoBehaviour
     private void OnDestroy()
     {
         
-        BlockSpawner blockSpawner = null;
+        MainLogic mainLogic = null;
         var spawnerGameObject = GameObject.Find("spawner");
         if (null != spawnerGameObject)
         {
-            blockSpawner = spawnerGameObject.GetComponent<BlockSpawner>();
+            mainLogic = spawnerGameObject.GetComponent<MainLogic>();
         }
-        if (null != blockSpawner)
+        if (null != mainLogic)
         {
-            blockSpawner.DeleteFromGrid(_x,_y);
+            mainLogic.DeleteFromGrid(_x,_y);
         }
     }
 }
