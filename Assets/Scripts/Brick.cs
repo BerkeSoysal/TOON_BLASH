@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class brick : MonoBehaviour
+public class Brick : MonoBehaviour
 {    
     private void OnMouseDown()
     {

@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.SceneManagement;
 
-public class restart : MonoBehaviour, IPointerDownHandler
+public class Restart : MonoBehaviour, IPointerDownHandler
 {
     public void OnPointerDown(PointerEventData pointerEventData)
     {

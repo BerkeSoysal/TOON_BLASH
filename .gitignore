@@ -35,4 +35,6 @@ Thumbs.db
 
 .idea/
 Logs
+UserSettings
 Packages
+*.meta

@@ -1,14 +1,11 @@
-﻿using System.Collections;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 public class BombAndBrick : MonoBehaviour
 { 
-    private int x = -1;
+    private int _x = -1;
 
-    private int y = -1;
-
-    private Dictionary<int, int> _dictionary;
+    private int _y = -1;
 
     private static readonly int Destroy1 = Animator.StringToHash("destroy");
 
@@ -17,9 +14,8 @@ public class BombAndBrick : MonoBehaviour
         
         var anim = GetComponent<Animator>();
         anim.SetTrigger(Destroy1);
-        this.x = x;
-        this.y = y;
-        _dictionary = dictionary;
+        this._x = x;
+        this._y = y;
     }
     private void OnDestroy()
     {
@@ -32,7 +28,7 @@ public class BombAndBrick : MonoBehaviour
         }
         if (null != blockSpawner)
         {
-            blockSpawner.DeleteFromGrid(x,y);
+            blockSpawner.DeleteFromGrid(_x,_y);
         }
     }
 }
