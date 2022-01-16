@@ -469,14 +469,11 @@ public class MainLogic : MonoBehaviour
         int x = Undefined, y = Undefined;
         GetClickedGrid(ref x, ref y, gameObjectTransform);
         List<Point> elementsToDelete = new List<Point>();
-
         var dictionary = new Dictionary<int, int>();
+        var listBomb = new List<Point>();
+        listBomb.Add(new Point(x, y));
 
-        var ListBomb = new List<Point>();
-
-        ListBomb.Add(new Point(x, y));
-
-        FindMissiledElements(ListBomb, dictionary, elementsToDelete);
+        FindMissiledElements(listBomb, dictionary, elementsToDelete);
 
         DeleteElements(elementsToDelete, false, dictionary);
         AddScore(elementsToDelete.Count);
@@ -487,11 +484,8 @@ public class MainLogic : MonoBehaviour
         int x = Undefined, y = Undefined;
         GetClickedGrid(ref x, ref y, gameObjectTransform);
         List<Point> elementsToDelete = new List<Point>();
-
         var dictionary = new Dictionary<int, int>();
-
         var listBomb = new List<Point>();
-
         listBomb.Add(new Point(x, y));
 
         FindMissiledElementsUpside(listBomb, dictionary, elementsToDelete);
@@ -505,20 +499,16 @@ public class MainLogic : MonoBehaviour
         int x = Undefined, y = Undefined;
         GetClickedGrid(ref x, ref y, gameObjectTransform);
         List<Point> elementsToDelete = new List<Point>();
-
         var dictionary = new Dictionary<int, int>();
+        var listBomb = new List<Point>();
+        listBomb.Add(new Point(x, y));
 
-        var ListBomb = new List<Point>();
-
-        ListBomb.Add(new Point(x, y));
-
-        FindBombedElements(ListBomb, dictionary, elementsToDelete);
+        FindBombedElements(listBomb, dictionary, elementsToDelete);
 
         DeleteElements(elementsToDelete, false, dictionary);
         AddScore(elementsToDelete.Count);
     }
-
-    //FIXME these 3 methods :) 
+    
     private void FindMissiledElements(List<Point> listBomb, Dictionary<int, int> dictionary,
         List<Point> elementsToDelete)
     {
@@ -560,7 +550,6 @@ public class MainLogic : MonoBehaviour
     private void FindBombedElements(List<Point> listBomb, Dictionary<int, int> dictionary, List<Point> elementsToDelete)
     {
         _visitedBomb.Add(listBomb[0]);
-        var deletedBombs = new List<Point>();
         while (listBomb.Count > 0)
         {
             for (int i = listBomb[0].GetX() - 1; i <= listBomb[0].GetX() + 1; i++)
@@ -582,9 +571,7 @@ public class MainLogic : MonoBehaviour
 
             if (listBomb.Count > 0)
             {
-                var deletePoint = listBomb[0];
                 listBomb.RemoveAt(0);
-                deletedBombs.Add(deletePoint);
             }
         }
     }
