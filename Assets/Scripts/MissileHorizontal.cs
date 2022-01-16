@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-public class MissileHorizontal : MonoBehaviour
+public class MissileHorizontal : GameElement
 {
-    public void OnMouseDown()
+    public override void OnMouseDown()
     { 
-        MainLogic mainLogic = GameObject.Find("spawner").GetComponent<MainLogic>();
+        var mainLogic = GameObject.Find("spawner").GetComponent<MainLogic>();
         mainLogic.GetMissiledBrick(gameObject.transform);
     }
 }

@@ -1,10 +1,10 @@
 ﻿using UnityEngine;
 
-public class Bomb : MonoBehaviour
+public class Bomb : GameElement
 {
-    public void OnMouseDown()
+    public override void OnMouseDown()
     {
-        MainLogic mainLogic = GameObject.Find("spawner").GetComponent<MainLogic>();
+        var mainLogic = GameObject.Find("spawner").GetComponent<MainLogic>();
         mainLogic.GetBombedBrick(gameObject.transform);
     }
 }

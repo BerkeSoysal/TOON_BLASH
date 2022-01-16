@@ -9,13 +9,12 @@ public class BombAndBrick : MonoBehaviour
 
     private static readonly int Destroy1 = Animator.StringToHash("destroy");
 
-    public void Trigger(int x, int y, Dictionary<int, int> dictionary)
+    public void Trigger(int x, int y)
     {
-        
         var anim = GetComponent<Animator>();
         anim.SetTrigger(Destroy1);
-        this._x = x;
-        this._y = y;
+        _x = x;
+        _y = y;
     }
     private void OnDestroy()
     {
