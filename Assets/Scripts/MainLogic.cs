@@ -24,8 +24,7 @@ public class MainLogic : MonoBehaviour
     public GameObject bomb;
     public GameObject corruptedBrick;
 
-    private static readonly Transform[,] Grid = new Transform[Width, Height];
-
+    private static readonly Transform[][] Grid = new Transform[Width][];
     private IEnumerator _fallElementsDownCoroutine;
 
     private int _score;
@@ -41,6 +40,11 @@ public class MainLogic : MonoBehaviour
 
     void Start()
     {
+        for (int i = 0; i < Grid.Length; i++)
+        {
+            Grid[i] = new Transform[Height];
+        }
+        
         _colorNames = new List<string>
         {
             "blue",
@@ -65,7 +69,7 @@ public class MainLogic : MonoBehaviour
                 var newBlock = Instantiate(blocks[Random.Range(0, blocks.Length)], position,
                     Quaternion.identity);
                 newBlock.name = _blockCounter++.ToString();
-                Grid[i, j] = newBlock.transform;
+                Grid[i][j] = newBlock.transform;
             }
         }
     }
@@ -122,7 +126,7 @@ public class MainLogic : MonoBehaviour
         {
             for (int j = 0; j < Height; j++)
             {
-                if (ReferenceEquals(Grid[i, j], null))
+                if (ReferenceEquals(Grid[i][j], null))
                 {
                     counter++;
                     if (bricksToBeAdded.ContainsKey(i))
@@ -170,17 +174,17 @@ public class MainLogic : MonoBehaviour
                 {
                     for (int y = 0; y < Height; y++)
                     {
-                        if (!ReferenceEquals(Grid[x, y], null)) continue;
+                        if (!ReferenceEquals(Grid[x][y], null)) continue;
                         for (int indexY = y + 1; indexY < Height; indexY++)
                         {
-                            if (!ReferenceEquals(Grid[x, indexY], null))
+                            if (!ReferenceEquals(Grid[x][indexY], null))
                             {
                                 stillFalling = true;
-                                Grid[x, indexY - 1] = Grid[x, indexY];
-                                Vector2 vector = Grid[x, indexY - 1].transform.position;
+                                Grid[x][indexY - 1] = Grid[x][indexY];
+                                Vector2 vector = Grid[x][indexY - 1].transform.position;
                                 vector.y -= BrickHeight;
-                                Grid[x, indexY - 1].transform.position = vector;
-                                Grid[x, indexY] = null;
+                                Grid[x][indexY - 1].transform.position = vector;
+                                Grid[x][indexY] = null;
                             }
                         }
                     }
@@ -208,7 +212,7 @@ public class MainLogic : MonoBehaviour
         for (var i = 0; i < Width; i++)
         for (var j = 0; j < Height; j++)
         {
-            if (_colorNames.Contains(Grid[i, j].transform.gameObject.tag))
+            if (_colorNames.Contains(Grid[i][j].transform.gameObject.tag))
                 return false;
         }
 
@@ -230,15 +234,15 @@ public class MainLogic : MonoBehaviour
             int randomWidth = Random.Range(0, Width);
 
 
-            if (_colorNames.Contains(Grid[randomWidth, randomHeight].gameObject.tag))
+            if (_colorNames.Contains(Grid[randomWidth][randomHeight].gameObject.tag))
             {
                 corruptedSelected++;
-                var vector = Grid[randomWidth, randomHeight].position;
-                Destroy(Grid[randomWidth, randomHeight].gameObject);
+                var vector = Grid[randomWidth][randomHeight].position;
+                Destroy(Grid[randomWidth][randomHeight].gameObject);
                 var corruptedObject = Instantiate(corruptedBrick, vector, Quaternion.identity);
                 corruptedObject.name = "corrupted" + _blockCounter;
                 _blockCounter++;
-                Grid[randomWidth, randomHeight] = corruptedObject.transform;
+                Grid[randomWidth][randomHeight] = corruptedObject.transform;
             }
         }
 
@@ -254,7 +258,7 @@ public class MainLogic : MonoBehaviour
         for (int i = 0; i < Width; i++)
         for (int j = 0; j < Height; j++)
         {
-            string clickedColor = Grid[i, j].tag;
+            string clickedColor = Grid[i][j].tag;
             if (clickedColor.Equals("bomb") || clickedColor.Equals("missile") || clickedColor.Equals("upmissile"))
             {
                 return true;
@@ -287,7 +291,7 @@ public class MainLogic : MonoBehaviour
 
         if (clickedBlockX != Undefined)
         {
-            string clickedColor = Grid[clickedBlockX, clickedBlockY].tag;
+            string clickedColor = Grid[clickedBlockX][clickedBlockY].tag;
             List<Point> elementsToBeTraversed = new List<Point>();
             List<Point> elementsToBeDeleted = new List<Point>();
             elementsToBeTraversed.Add(new Point(clickedBlockX, clickedBlockY));
@@ -335,7 +339,7 @@ public class MainLogic : MonoBehaviour
                     0), Quaternion.identity);
             GameObject gameObjectBlock = (GameObject)newBlock;
             newBlock.name = "" + _blockCounter++;
-            Grid[t, Height - 1] = gameObjectBlock.transform;
+            Grid[t][Height - 1] = gameObjectBlock.transform;
         }
     }
 
@@ -347,18 +351,18 @@ public class MainLogic : MonoBehaviour
             if (createBomb)
             {
                 createBomb = false;
-                pos = Grid[point.GetX(), point.GetY()].gameObject.transform.position;
-                Destroy(Grid[point.GetX(), point.GetY()].gameObject);
+                pos = Grid[point.GetX()][point.GetY()].gameObject.transform.position;
+                Destroy(Grid[point.GetX()][point.GetY()].gameObject);
                 var bombObject = elementsToBeDeleted.Count > CreateBomb
                     ? Instantiate(bomb, pos, Quaternion.identity)
                     : Instantiate(missiles[Random.Range(0, missiles.Length)], pos, Quaternion.identity);
                 bombObject.name = _blockCounter++.ToString();
-                Grid[point.GetX(), point.GetY()] = bombObject.transform;
+                Grid[point.GetX()][point.GetY()] = bombObject.transform;
                 dictionary[point.GetX()] -= 1;
             }
             else
             {
-                string brickId = Grid[point.GetX(), point.GetY()].gameObject.name;
+                string brickId = Grid[point.GetX()][point.GetY()].gameObject.name;
                 var bombOrBrick = GameObject.Find(brickId).GetComponent<BombAndBrick>();
                 bombOrBrick.Trigger(point.GetX(), point.GetY());
             }
@@ -368,7 +372,7 @@ public class MainLogic : MonoBehaviour
     public void DeleteFromGrid(int x, int y)
     {
         if (x != -1)
-            Grid[x, y] = null;
+            Grid[x][y] = null;
     }
 
     private void GetClickedGrid(ref int x, ref int y, Transform clickedObject)
@@ -377,12 +381,12 @@ public class MainLogic : MonoBehaviour
         {
             for (int j = 0; j < Height; j++)
             {
-                if (ReferenceEquals(Grid[i, j], null))
+                if (ReferenceEquals(Grid[i][j], null))
                 {
                     continue;
                 }
 
-                if (Grid[i, j].Equals(clickedObject))
+                if (Grid[i][j].Equals(clickedObject))
                 {
                     x = i;
                     y = j;
@@ -422,7 +426,7 @@ public class MainLogic : MonoBehaviour
         {
             if (x > -1 && x < Width && y > -1 && y < Height)
             {
-                if (!ReferenceEquals(Grid[x, y], null) && Grid[x, y].tag.Equals(color))
+                if (!ReferenceEquals(Grid[x][y], null) && Grid[x][y].tag.Equals(color))
                 {
                     Point newCur = new Point(x, y);
                     if (!elementsToBeDeleted.Contains(newCur) && !elementsToBeTraversed.Contains(newCur))
@@ -518,9 +522,9 @@ public class MainLogic : MonoBehaviour
         _visitedBomb.Add(new Point(listBomb[0].GetX(), listBomb[0].GetY()));
         for (int i = 0; i < Width; i++)
         {
-            if (!_visitedBomb.Contains(new Point(i, y)) && Grid[i,y].gameObject.GetComponent(typeof(GameElement)) != null)
+            if (!_visitedBomb.Contains(new Point(i, y)) && Grid[i][y].gameObject.GetComponent(typeof(GameElement)) != null)
             {
-                String gameObjectId = Grid[i, y].transform.gameObject.name;
+                String gameObjectId = Grid[i][y].transform.gameObject.name;
                 GameElement gameElement = GameObject.Find(gameObjectId).GetComponent<GameElement>();
                 gameElement.OnMouseDown();
             }
@@ -536,9 +540,9 @@ public class MainLogic : MonoBehaviour
         var x = listBomb[0].GetX();
         for (int i = 0; i < Height; i++)
         {
-            if (!_visitedBomb.Contains(new Point(x, i)) && Grid[x, i].gameObject.GetComponent(typeof(GameElement)) != null)
+            if (!_visitedBomb.Contains(new Point(x, i)) && Grid[x][i].gameObject.GetComponent(typeof(GameElement)) != null)
             {
-                String gameObjectId = Grid[x, i].transform.gameObject.name;
+                String gameObjectId = Grid[x][i].transform.gameObject.name;
                 GameElement gameElement = GameObject.Find(gameObjectId).GetComponent<GameElement>();
                 gameElement.OnMouseDown();
             }
@@ -562,9 +566,9 @@ public class MainLogic : MonoBehaviour
                         continue;
                     addElement(i, j, elementsToDelete, dictionary);
                     Point point = new Point(i, j);
-                    if (!_visitedBomb.Contains(point) && Grid[i,j].gameObject.GetComponent(typeof(GameElement)) != null)
+                    if (!_visitedBomb.Contains(point) && Grid[i][j].gameObject.GetComponent(typeof(GameElement)) != null)
                     {
-                        String gameObjectId = Grid[i, j].transform.gameObject.name;
+                        String gameObjectId = Grid[i][j].transform.gameObject.name;
                         GameElement gameElement = GameObject.Find(gameObjectId).GetComponent<GameElement>();
                         gameElement.OnMouseDown();
                     }
@@ -583,7 +587,7 @@ public class MainLogic : MonoBehaviour
         if (x > -1 && x < Width && y > -1 && y < Height)
         {
             Point toAdd = new Point(x, y);
-            if (!ReferenceEquals(Grid[x, y], null) && !deleteList.Contains(toAdd))
+            if (!ReferenceEquals(Grid[x][y], null) && !deleteList.Contains(toAdd))
             {
                 deleteList.Add(toAdd);
                 if (dictionary.ContainsKey(x))
