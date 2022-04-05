@@ -15,12 +15,14 @@ public class MainLogic : MonoBehaviour
     private const int Undefined = -1;
     private const int CreateBomb = 6;
     private const int CreateMissile = 4;
-    private const int NumberOfColoredBricks = 4;
     private const int CorruptBrickCreate = 4;
     private int _corruptBrickNum = 6;
     private int _move;
 
     public GameObject[] blocks;
+    public GameObject[] missiles;
+    public GameObject bomb;
+    public GameObject corruptedBrick;
 
     private static readonly Transform[,] Grid = new Transform[Width, Height];
 
@@ -60,7 +62,7 @@ public class MainLogic : MonoBehaviour
             for (var j = 0; j < Height; j++)
             {
                 var position = transform.position + new Vector3(i * BrickWidth, j * BrickHeight, 0);
-                var newBlock = Instantiate(blocks[Random.Range(0, NumberOfColoredBricks)], position,
+                var newBlock = Instantiate(blocks[Random.Range(0, blocks.Length)], position,
                     Quaternion.identity);
                 newBlock.name = _blockCounter++.ToString();
                 Grid[i, j] = newBlock.transform;
@@ -233,7 +235,7 @@ public class MainLogic : MonoBehaviour
                 corruptedSelected++;
                 var vector = Grid[randomWidth, randomHeight].position;
                 Destroy(Grid[randomWidth, randomHeight].gameObject);
-                var corruptedObject = Instantiate(blocks[7], vector, Quaternion.identity);
+                var corruptedObject = Instantiate(corruptedBrick, vector, Quaternion.identity);
                 corruptedObject.name = "corrupted" + _blockCounter;
                 _blockCounter++;
                 Grid[randomWidth, randomHeight] = corruptedObject.transform;
@@ -328,7 +330,7 @@ public class MainLogic : MonoBehaviour
     {
         foreach (var t in mc)
         {
-            UnityEngine.Object newBlock = Instantiate(blocks[Random.Range(0, 4)],
+            UnityEngine.Object newBlock = Instantiate(blocks[Random.Range(0, blocks.Length)],
                 new Vector3(transform.position.x + t * BrickWidth, transform.position.y + (Height - 1) * BrickHeight,
                     0), Quaternion.identity);
             GameObject gameObjectBlock = (GameObject)newBlock;
@@ -348,8 +350,8 @@ public class MainLogic : MonoBehaviour
                 pos = Grid[point.GetX(), point.GetY()].gameObject.transform.position;
                 Destroy(Grid[point.GetX(), point.GetY()].gameObject);
                 var bombObject = elementsToBeDeleted.Count > CreateBomb
-                    ? Instantiate(blocks[4], pos, Quaternion.identity)
-                    : Instantiate(blocks[Random.Range(5, 7)], pos, Quaternion.identity);
+                    ? Instantiate(bomb, pos, Quaternion.identity)
+                    : Instantiate(missiles[Random.Range(0, missiles.Length)], pos, Quaternion.identity);
                 bombObject.name = _blockCounter++.ToString();
                 Grid[point.GetX(), point.GetY()] = bombObject.transform;
                 dictionary[point.GetX()] -= 1;
