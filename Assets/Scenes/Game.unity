@@ -664,7 +664,9 @@ MonoBehaviour:
   - {fileID: 8749651654694594136, guid: dbeb7c6e8c61c1f4b9845d8bb1dc773a, type: 3}
   - {fileID: 1623503001920913419, guid: 149e8af838148b840b66f5ea3b9c099b, type: 3}
   - {fileID: 8754860639557875416, guid: a5a219d0f631b42ea83d9ea58865542d, type: 3}
-  missiles: []
+  missiles:
+  - {fileID: 658842530918708759, guid: ec61f50c14b4a884d9e7f8c4b88e03e5, type: 3}
+  - {fileID: 5510433609075543828, guid: 1f054f5c6b5e80840be898c8d09fb8f9, type: 3}
   bomb: {fileID: 5437826455789931436, guid: e9ac9de9e4320440c8ed79215954a1aa, type: 3}
   corruptedBrick: {fileID: 2873854673868182886, guid: 53553a2c81f1c4c3d8f2a52ba90697c6,
     type: 3}
